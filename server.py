@@ -1395,8 +1395,9 @@ def water_places(q, limit=10, near=None):
 def places(q, limit=20, near=None):
     if address_search.is_address_query(q):
         found = address_search.find_addresses(q, HERE / 'derived' / 'geo', limit=min(limit, 8), near=near)
-        if found or not address_search.is_german_postcode_query(q, HERE / 'derived' / 'geo'):
-            return found    # '10117 Berlin' is number-first too, but a place where a German index knows it
+        if found or not (address_search.is_german_postcode_query(q, HERE / 'derived' / 'geo')
+                         or address_search.is_french_postcode_query(q, HERE / 'derived' / 'geo')):
+            return found    # '10117 Berlin' and '75001 Paris' are number-first too, but places where a German or French index knows them
     elif address_search.is_german_address_query(q):
         # 'Unter den Linden 77' and 'Route 66' look alike: an address only when an installed index has that house
         found = address_search.find_addresses(q, HERE / 'derived' / 'geo', limit=min(limit, 8), near=near)
