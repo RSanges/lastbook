@@ -1,0 +1,1019 @@
+{
+  "about": "Proposed region definitions for detailed maps of France: 18 administrative regions, the five overseas regions included, one region each. See docs/REGIONS-FR.md.",
+  "status": "proposal",
+  "checked": "2026-11-17",
+  "codes": {
+    "proposal": "ISO 3166-2:FR codes: FR-ARA, FR-BFC, FR-BRE, FR-CVL, FR-GES, FR-HDF, FR-IDF, FR-NAQ, FR-NOR, FR-OCC, FR-PAC, FR-PDL, FR-20R (Corsica), FR-971, FR-972, FR-973, FR-974, FR-976 (overseas).",
+    "why": "A bare FR is not in STATE_CODES (engine/address_search.py) but is the whole country. No part after the hyphen is a US code: all are three characters, US codes two letters. The overseas ISO 3166-1 codes GP, MQ, GF, RE, YT are not US codes either.",
+    "risk": "Read in the code, not run: a map id only has to match NAME in engine/setup/manifest.py (^[A-Za-z0-9][A-Za-z0-9._-]{0,120}$), so FR-IDF, FR-20R and FR-971 pass. An address index id must be exactly two capital letters ([A-Z]{2} in validate()), and carry_over() in engine/setup/install.py keeps only index files named that way, so no hyphenated code can have an address index until those two rules are widened.",
+    "verified": "Checked against ISO's Online Browsing Platform, entry for FR, opened in a browser on 2026-11-17 (the site refuses automated access): all 18 codes are in its list. Debian iso-codes data and the English Wikipedia page ISO 3166-2:FR (both opened) agree. ISO's change history: FR-COR became FR-20R on 2020-11-24; FR-GP, FR-MQ, FR-GF, FR-RE, FR-YT were deleted on 2021-11-25. The older forms are not used."
+  },
+  "layer_keys": {
+    "terrain": "terrain.sqlite",
+    "water": "water.sqlite",
+    "dams": "water.sqlite (nid part today)",
+    "crops": "crops.sqlite",
+    "buildings": "buildings.sqlite",
+    "places": "places.sqlite",
+    "addresses": "derived/geo/addresses/<code>.sqlite",
+    "pois": "poi rows in national.sqlite"
+  },
+  "licences": {
+    "Licence-Ouverte-2.0": {
+      "name": "Licence Ouverte / Open Licence version 2.0 (Etalab)",
+      "url": "https://www.etalab.gouv.fr/licence-ouverte-open-licence",
+      "attribution": "Mention the source (at least the name of the licensor) and the date of the last update of the data reused; a link to the data may do. Must not suggest endorsement. IGN and Sandre fix no sentence in the records opened; a suggested wording (ours, not the publishers'): \"Source : IGN, BD TOPO, édition du 15 septembre 2026, Licence Ouverte 2.0\".",
+      "share_alike": false,
+      "verified": "licence text opened 2026-11-17"
+    },
+    "Copernicus-WorldDEM-30": {
+      "name": "Copernicus WorldDEM-30 licence (COP-DEM-GLO-30-F, Full, Free & Open)",
+      "url": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/DEM/resources/license/License-COPDEM-30.pdf",
+      "attribution": "see docs/regions-proposed.json; the notices must be passed on to everyone who redistributes",
+      "share_alike": false,
+      "verified": "licence PDF opened 2026-11-17"
+    },
+    "ODbL-1.0": {
+      "name": "Open Database License 1.0",
+      "url": "https://opendatacommons.org/licenses/odbl/1-0/",
+      "attribution": "\"© OpenStreetMap contributors\"",
+      "share_alike": true,
+      "verified": "as for the US map; openstreetmap.org/copyright opened 2026-11-17"
+    },
+    "CC-BY-4.0": {
+      "name": "Creative Commons Attribution 4.0 International",
+      "url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "GeoNames: give credit to GeoNames, a link to www.geonames.org is enough (readme opened).",
+      "share_alike": false,
+      "verified": "licence text not reopened"
+    }
+  },
+  "country_layers": {
+    "terrain": [
+      {
+        "dataset": "BD ALTI 25 m (ASCII grid per department)",
+        "publisher": "IGN",
+        "url": "https://data.geopf.fr/telechargement/resource/BDALTI",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "2026-11-17",
+        "role": "primary",
+        "notes": "Bare ground, derived from RGE ALTI. About 2.6 GB for 83 of 104 department files (21 rate-limited); about 3 GB in all (estimate). Lambert-93 or local UTM: needs reprojection to one-degree geographic tiles. Overseas editions 2013 to 2015 for Mayotte, Guadeloupe, Martinique.",
+        "overseas": "all five"
+      },
+      {
+        "dataset": "RGE ALTI 1 m and 5 m",
+        "publisher": "IGN",
+        "url": "https://data.geopf.fr/telechargement/resource/RGEALTI",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "2026-11-17",
+        "role": "finer option",
+        "notes": "Updates stopped in 2024. Radar in the Alps, Pyrenees, Cévennes and Corsica. 5 m about 38.9 GB, 1 m about 769 GB (derived from feed sizes).",
+        "overseas": "all five"
+      },
+      {
+        "dataset": "MNT LiDAR HD (0.5 m tiles)",
+        "publisher": "IGN",
+        "url": "https://www.data.gouv.fr/api/1/datasets/mnt-lidar-hd/",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "record opened; progress map not opened",
+        "role": "successor, in production",
+        "notes": "Record: to cover metropolitan France and the overseas regions except Guyane by 2026. A 5 m version announced.",
+        "overseas": "all but Guyane, planned"
+      },
+      {
+        "dataset": "Copernicus DEM GLO-30",
+        "publisher": "ESA / Airbus",
+        "url": "https://registry.opendata.aws/copernicus-dem/",
+        "licence": "Copernicus-WorldDEM-30",
+        "verified": "AWS page, ESA page and licence opened; nine sample tiles answered HTTP 200",
+        "role": "single-source fallback",
+        "notes": "Surface model. Tiles named by lower-left corner. Completeness over France not checked.",
+        "overseas": "sample tiles for all five"
+      }
+    ],
+    "water": [
+      {
+        "dataset": "BD TOPAGE 2026, Plans d'eau",
+        "publisher": "Sandre / OFB with IGN",
+        "url": "https://services.sandre.eaufrance.fr/telechargement/geo/ETH/BDTopage/2026/",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "2026-11-17",
+        "role": "primary",
+        "notes": "Generated from BD TOPO water theme of December 2025. Excludes marshes, wetlands, lagoons, mangroves and basins. Do not use the 2019 and 2022 vintages (fr-lo).",
+        "overseas": "971, 972, 974, 976; Guyane not found (guessed file names returned 404)"
+      },
+      {
+        "dataset": "BD TOPO 3.5, surface_hydrographique and plan_d_eau",
+        "publisher": "IGN",
+        "url": "https://data.geopf.fr/telechargement/resource/BDTOPO",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "2026-11-17",
+        "role": "primary for marsh, lagoon, estuary; only source in Guyane",
+        "notes": "nature values give the lake, reservoir, marsh and estuary mapping; \"not for drinking\" candidates: storm, fish-farm and harbour basins, mine and gravel-pit lakes (maintainers' choice).",
+        "overseas": "all five"
+      },
+      {
+        "dataset": "BD TOPAGE 2026 Tronçons hydrographiques / BD TOPO troncon_hydrographique",
+        "publisher": "Sandre / OFB; IGN",
+        "url": "https://services.sandre.eaufrance.fr/telechargement/geo/ETH/BDTopage/2026/",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "2026-11-17",
+        "role": "river lines (national.sqlite today)"
+      },
+      {
+        "dataset": "INPE 2023 (national inventory of water bodies)",
+        "publisher": "IGEDD, IGN, CNES",
+        "url": "https://data.geopf.fr/telechargement/resource/INPE",
+        "licence": "Licence Ouverte",
+        "verified": "2026-11-17",
+        "role": "attributes (uses)",
+        "notes": "Record says Guyane \"in progress\".",
+        "overseas": "971, 972, 974, 976; no Guyane"
+      },
+      {
+        "dataset": "OSM waterways and water areas (Geofabrik)",
+        "publisher": "OpenStreetMap contributors",
+        "url": "https://download.geofabrik.de/europe/france.html",
+        "licence": "ODbL-1.0",
+        "verified": "2026-11-17",
+        "role": "alternative",
+        "notes": "france-latest.osm.pbf is metropolitan France only (4.8 GB, data to 2026-11-16T21:22Z); overseas regions are separate extracts."
+      }
+    ],
+    "dams": [
+      {
+        "dataset": "ROE, Référentiel des Obstacles à l'Écoulement",
+        "publisher": "Sandre / OFB",
+        "url": "https://services.sandre.eaufrance.fr/geo/obs",
+        "licence": "Licence Ouverte (version not stated)",
+        "verified": "record and WFS opened 2026-11-17; counts measured",
+        "role": "primary, with a filter",
+        "notes": "Obstacles to flow, not a dam register. 125,818 obstacles (measured). Derived by joining two CSV exports by row order (an assumption): 20,054 dams of any sub-type, 17,375 existing, 5,456 with a drop height, 93 of 10 m or more. No storage, hazard class or owner.",
+        "overseas": "all five"
+      },
+      {
+        "dataset": "BD TOPO construction_lineaire and construction_surfacique, nature Barrage",
+        "publisher": "IGN",
+        "url": "https://data.geopf.fr/wfs/ows",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "counts measured on the WFS 2026-11-17",
+        "role": "cross-check",
+        "notes": "38,154 linear, 402 surface; weirs and sluices included; no height or purpose."
+      },
+      {
+        "dataset": "OSM waterway=dam",
+        "publisher": "OpenStreetMap contributors",
+        "url": "https://taginfo.geofabrik.de/europe:france/",
+        "licence": "ODbL-1.0",
+        "verified": "2026-11-17",
+        "role": "fallback",
+        "notes": "5,618 in the metropolitan extract."
+      }
+    ],
+    "crops": [
+      {
+        "dataset": "RPG 2025 (RPG 4.0), Parcelles",
+        "publisher": "IGN, from the ASP",
+        "url": "https://data.geopf.fr/telechargement/resource/RPG",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "2026-11-17",
+        "role": "primary",
+        "notes": "Declared farm parcels only; polygons with code_cultu and code_group, so a rasterising step is needed. Metropolitan file about 10.9 GB. Fits orchard (group 20), vineyard (21), nut (22); olives (23) and other French crops are a decision.",
+        "overseas": "all five"
+      },
+      {
+        "dataset": "OSO land cover raster, 10 m, 2016 to 2024",
+        "publisher": "Theia / CNES (GEODES) / CESBIO",
+        "url": "https://geodes.cnes.fr/projects/oso-occupation-des-sols-raster-l3b/",
+        "licence": "Etalab 2.0 per GEODES and Theia; Apache 2.0 in the STAC record",
+        "verified": "pages opened; download answered HTTP 500 (quota)",
+        "role": "alternative",
+        "notes": "Orchards and vineyards only; no berries, olives or nuts. 23 or 24 classes depending on the page. Licence to be confirmed with Theia.",
+        "overseas": "none (metropolitan France and Corsica only)"
+      },
+      {
+        "dataset": "CORINE Land Cover",
+        "publisher": "IGN / Copernicus",
+        "url": "https://data.geopf.fr/telechargement/resource/CORINELANDCOVER",
+        "licence": null,
+        "verified": "feed opened; licence and classes on IGN not checked",
+        "role": "coarse fallback",
+        "notes": "2018 for metropolitan France, 2012 overseas."
+      }
+    ],
+    "buildings": [
+      {
+        "dataset": "BD TOPO 3.5 batiment (edition 2026-09-15)",
+        "publisher": "IGN",
+        "url": "https://data.geopf.fr/telechargement/resource/BDTOPO",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "feed and file footers opened; counts measured on the WFS",
+        "role": "primary",
+        "notes": "51,484,368 buildings on the WFS, 96.7 % with hauteur. Whole-France GeoParquet batiment file 7.39 GB; GPKG per region and department. hauteur runs from the lowest ground point to the top of the eaves (roof edge, or top of the wall under a flat roof), not the ridge (BD TOPO 3.5 content description, July 2026, opened).",
+        "overseas": "all five"
+      },
+      {
+        "dataset": "Cadastre Etalab, batiments",
+        "publisher": "DGFiP, through Etalab",
+        "url": "https://cadastre.data.gouv.fr/datasets/cadastre-etalab",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "2026-11-17",
+        "role": "fallback",
+        "notes": "No heights. Licence from the data.gouv.fr record of the cadastral plan; the cadastre site states none.",
+        "overseas": "all five"
+      },
+      {
+        "dataset": "OSM buildings / Overture buildings",
+        "publisher": "OpenStreetMap contributors; Overture Maps Foundation",
+        "url": "https://docs.overturemaps.org/attribution/",
+        "licence": "ODbL-1.0",
+        "verified": "2026-11-17",
+        "role": "alternative",
+        "notes": "OSM building=yes: 46,605,146 objects. Microsoft footprints not proposed (CDLA Permissive 2.0 per its README, ODbL per Overture)."
+      }
+    ],
+    "places": [
+      {
+        "dataset": "BD TOPO zone_d_habitation, lieu_dit_non_habite, commune, toponymie",
+        "publisher": "IGN",
+        "url": "https://data.geopf.fr/telechargement/resource/BDTOPO",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "feed opened; counts measured on the WFS",
+        "role": "primary",
+        "notes": "1,154,044 inhabited places, 486,103 uninhabited, 34,877 communes (WFS counts).",
+        "overseas": "all five"
+      },
+      {
+        "dataset": "Code officiel géographique 2026, communes",
+        "publisher": "INSEE",
+        "url": "https://www.insee.fr/fr/statistiques/fichier/8740222/v_commune_2026.csv",
+        "licence": "Licence Ouverte (tagged fr-lo on data.gouv.fr)",
+        "verified": "file opened and counted",
+        "role": "codes",
+        "notes": "37,496 rows, no coordinates; join to ADMIN EXPRESS or BD TOPO. fr-lo read as version 1.0 by a search result (search only), but the file was taken from insee.fr, whose legal notice (opened in a browser 2026-11-17) puts the site's data and files under Licence Ouverte 2.0 unless stated otherwise and asks for \"Source : Insee\" with the date of last update when known."
+      },
+      {
+        "dataset": "ADMIN EXPRESS COG 4.0, edition 2026-01-01",
+        "publisher": "IGN",
+        "url": "https://data.geopf.fr/telechargement/resource/ADMIN-EXPRESS-COG",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "feed opened; layers inside the file not read",
+        "role": "commune points and outlines"
+      },
+      {
+        "dataset": "Base officielle des codes postaux",
+        "publisher": "La Poste",
+        "url": "https://www.data.gouv.fr/datasets/base-officielle-des-codes-postaux/",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "publisher API and file opened, counted",
+        "role": "postcode points",
+        "notes": "39,192 rows for 6,328 postcodes: one point per commune and postcode pair, so a rule is needed. 7 rows without coordinates. Postcode outlines are not open.",
+        "overseas": "rows present"
+      },
+      {
+        "dataset": "GeoNames postal codes (FR.zip)",
+        "publisher": "GeoNames",
+        "url": "https://download.geonames.org/export/zip/",
+        "licence": "CC-BY-4.0",
+        "verified": "2026-11-17",
+        "role": "supplement",
+        "notes": "FR.zip has no 971 to 976 rows; they are in GP.zip, MQ.zip, GF.zip, RE.zip, YT.zip."
+      },
+      {
+        "dataset": "OSM named places",
+        "publisher": "OpenStreetMap contributors",
+        "url": "https://download.geofabrik.de/europe/france.html",
+        "licence": "ODbL-1.0",
+        "verified": "2026-11-17",
+        "role": "supplement"
+      }
+    ],
+    "addresses": [
+      {
+        "dataset": "Overture addresses, release 2026-10-21.0",
+        "publisher": "Overture Maps Foundation, from the Base Adresse Nationale through OpenAddresses",
+        "url": "https://docs.overturemaps.org/attribution/",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "attribution page and guide opened; rows measured",
+        "role": "primary",
+        "notes": "26,052,116 rows with country = FR (the guide gives the same), overseas included; postal_city empty and address_levels holds only the commune; every postcode five digits; source dataset per department (fr/59, fr/2A, fr/971/statewide).",
+        "overseas": "all five, under FR"
+      },
+      {
+        "dataset": "Base Adresse Nationale (BAN), CSV per department",
+        "publisher": "Base Adresse Nationale, operated by IGN with DINUM",
+        "url": "https://adresse.data.gouv.fr/data/ban/adresses/latest/csv/",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "listing and two department files opened",
+        "role": "alternative",
+        "notes": "Republished daily; France file 945.68 MB; suffix in a separate rep column. Open since 2020-01-01 per a news article (secondary).",
+        "overseas": "all five"
+      }
+    ],
+    "pois": [
+      {
+        "dataset": "OSM amenities as the US map uses them",
+        "publisher": "OpenStreetMap contributors",
+        "url": "https://taginfo.geofabrik.de/europe:france/",
+        "licence": "ODbL-1.0",
+        "verified": "2026-11-17",
+        "role": "primary",
+        "notes": "Metropolitan extract; the overseas regions have their own taginfo.",
+        "counts_as_of": "2026-11-16T21:22Z",
+        "counts": {
+          "amenity=pharmacy": 19141,
+          "amenity=fire_station": 6124,
+          "amenity=police": 5979,
+          "amenity=hospital": 2494,
+          "amenity=drinking_water": 26740,
+          "man_made=water_well": 23311,
+          "emergency=water_tank": 11396,
+          "emergency=drinking_water": 0,
+          "emergency=defibrillator": 28328,
+          "emergency=fire_hydrant": 246264,
+          "emergency=siren": 457,
+          "emergency=assembly_point": 1697,
+          "amenity=shelter": 47862,
+          "tourism=alpine_hut": 693,
+          "tourism=wilderness_hut": 1152
+        },
+        "counts_overseas_as_of": "2026-11-16 (between 00:13 and 20:52 UTC, per region)",
+        "counts_overseas": {
+          "FR-971": {
+            "amenity=pharmacy": 136,
+            "amenity=hospital": 21,
+            "amenity=fire_station": 18,
+            "amenity=police": 56,
+            "amenity=drinking_water": 10,
+            "emergency=defibrillator": 206,
+            "emergency=siren": 12,
+            "amenity=shelter": 296,
+            "man_made=water_well": 2,
+            "amenity=fuel": 102
+          },
+          "FR-973": {
+            "amenity=pharmacy": 54,
+            "amenity=hospital": 16,
+            "amenity=fire_station": 20,
+            "amenity=police": 41,
+            "amenity=drinking_water": 38,
+            "emergency=defibrillator": 27,
+            "emergency=siren": 0,
+            "amenity=shelter": 278,
+            "man_made=water_well": 14,
+            "amenity=fuel": 47
+          },
+          "FR-972": {
+            "amenity=pharmacy": 104,
+            "amenity=hospital": 23,
+            "amenity=fire_station": 22,
+            "amenity=police": 43,
+            "amenity=drinking_water": 5,
+            "emergency=defibrillator": 13,
+            "emergency=siren": 0,
+            "amenity=shelter": 60,
+            "man_made=water_well": 1,
+            "amenity=fuel": 86
+          },
+          "FR-976": {
+            "amenity=pharmacy": 27,
+            "amenity=hospital": 7,
+            "amenity=fire_station": 9,
+            "amenity=police": 21,
+            "amenity=drinking_water": 10,
+            "emergency=defibrillator": 3,
+            "emergency=siren": 1,
+            "amenity=shelter": 143,
+            "man_made=water_well": 4,
+            "amenity=fuel": 8
+          },
+          "FR-974": {
+            "amenity=pharmacy": 228,
+            "amenity=hospital": 25,
+            "amenity=fire_station": 34,
+            "amenity=police": 58,
+            "amenity=drinking_water": 276,
+            "emergency=defibrillator": 49,
+            "emergency=siren": 0,
+            "amenity=shelter": 506,
+            "man_made=water_well": 7,
+            "amenity=fuel": 157
+          }
+        }
+      },
+      {
+        "dataset": "Géo'DAE, Base Nationale des Défibrillateurs",
+        "publisher": "Atlasanté",
+        "url": "https://www.data.gouv.fr/datasets/geodae-base-nationale-des-defibrillateurs",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "record opened; CSV downloaded and counted",
+        "role": "proposed new kind",
+        "notes": "192,233 records, all with coordinates; status flags (in service, awaiting validation, duplicate) overlap and must be filtered. Publisher wording for credit not checked.",
+        "overseas": "all five"
+      },
+      {
+        "dataset": "BD TOPO zone_d_activite_ou_d_interet",
+        "publisher": "IGN",
+        "url": "https://data.geopf.fr/wfs/ows",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "counts measured on the WFS 2026-11-17",
+        "role": "official cross-check",
+        "notes": "Caserne de pompiers 6,710; Gendarmerie 3,775; police 960; Hôpital 2,491; Etablissement hospitalier 2,412 (overlap not checked; partly sampled sub-totals); Refuge 718; Abri de montagne 1,854; Mairie 38,574.",
+        "overseas": "all five"
+      },
+      {
+        "dataset": "FINESS Structures (FINESS+), monthly 2026-10",
+        "publisher": "Agence du Numérique en Santé",
+        "url": "https://www.data.gouv.fr/datasets/finess-structures-1",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "file downloaded and parsed",
+        "role": "cross-check",
+        "notes": "78,803 of 104,850 active establishments (75 %) have WGS 84 coordinates.",
+        "overseas": "all five"
+      },
+      {
+        "dataset": "Service-Public.gouv.fr directory of local offices",
+        "publisher": "DILA",
+        "url": "https://www.data.gouv.fr/datasets/service-public-gouv-fr-annuaire-de-ladministration-base-de-donnees-locales",
+        "licence": "Licence-Ouverte-2.0",
+        "verified": "description and type list opened; archive not downloaded",
+        "role": "cross-check",
+        "notes": "Extra mention rules: Service-Public.gouv.fr / DILA, download URL, file name and date. Coordinates and overseas rows not checked."
+      }
+    ]
+  },
+  "addressing": {
+    "postal_code": {
+      "format": "Five digits; leading zeros are common (01000 Bourg-en-Bresse). First two digits usually the department; Corsica keeps 20, overseas 971 to 976; some communes use a neighbouring department's code.",
+      "example_pattern": "00000"
+    },
+    "order": "Number, street type and name, then postcode and town (\"10 rue de Rivoli, 75001 Paris\").",
+    "notes": "normalize() and norm() keep only a-z and 0-9 (\"Église\" becomes \"glise\"); is_address_query() accepts \"75001 Paris\" as an address; _parts() reads a postcode only as the last word; a last word equal to a US code is taken as a state; tools/build_addresses.py keeps only country = 'US', and for France would store an empty city and the first two letters of the commune as the state. Tried in this repository on 2026-11-17.",
+    "overture_fr": {
+      "release": "2026-10-21.0",
+      "rows": 26052116,
+      "rows_with_number_and_street": 26047899,
+      "postal_city_filled": 0,
+      "address_levels_length": 1,
+      "fake_states": 351,
+      "rows_with_fake_state_equal_to_us_code": 6894553,
+      "rows_with_postcode_of_neighbouring_department": 5170,
+      "verified": "measured 2026-11-17"
+    }
+  },
+  "regions": [
+    {
+      "code": "FR-971",
+      "name": "Guadeloupe",
+      "name_en": "Guadeloupe",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "overseas region (also a department)",
+      "insee": "01",
+      "bbox": {
+        "west": -61.8098,
+        "south": 15.832,
+        "east": -61.002,
+        "north": 16.5145,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          -61.96,
+          15.68,
+          -60.85,
+          16.67
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers",
+      "iso_3166_1": "GP",
+      "notes": "Outer islands (Les Saintes, Marie-Galante, La Désirade) widen the box by 0.17 to 0.36 degrees. Overture files Saint-Barthélemy and Saint-Martin addresses under 971 postcodes, but both lie outside the box: BD TOPO collectivite_territoriale gives Saint-Barthélemy -62.9266, 17.8708, -62.7891, 17.9741 and Saint-Martin -63.1533, 18.0459, -62.9705, 18.1252 (west, south, east, north; measured on the WFS 2026-11-17)."
+    },
+    {
+      "code": "FR-972",
+      "name": "Martinique",
+      "name_en": "Martinique",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "overseas region (also a department)",
+      "insee": "02",
+      "bbox": {
+        "west": -61.229,
+        "south": 14.3886,
+        "east": -60.8097,
+        "north": 14.8787,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          -61.38,
+          14.23,
+          -60.65,
+          15.03
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers",
+      "iso_3166_1": "MQ"
+    },
+    {
+      "code": "FR-973",
+      "name": "Guyane",
+      "name_en": "French Guiana",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "overseas region (also a department)",
+      "insee": "03",
+      "bbox": {
+        "west": -54.6024,
+        "south": 2.1111,
+        "east": -51.6191,
+        "north": 5.7487,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          -54.76,
+          1.96,
+          -51.46,
+          5.9
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers",
+      "iso_3166_1": "GF",
+      "notes": "Box about 134,000 km² for 83,129 km² of land (computed); about 40 % of the box lies in Suriname, Brazil or the ocean. South-west corner lies in the zone where French and Surinamese maps disagree on the border (French Senate report, June 2025, opened). Not in MNT LiDAR HD; BD TOPAGE 2026 and INPE 2023 have no Guyane file."
+    },
+    {
+      "code": "FR-974",
+      "name": "La Réunion",
+      "name_en": "Réunion",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "overseas region (also a department)",
+      "insee": "04",
+      "bbox": {
+        "west": 55.2165,
+        "south": -21.3896,
+        "east": 55.8367,
+        "north": -20.8718,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          55.06,
+          -21.54,
+          55.99,
+          -20.72
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers",
+      "iso_3166_1": "RE"
+    },
+    {
+      "code": "FR-976",
+      "name": "Mayotte",
+      "name_en": "Mayotte",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "overseas region (also a department)",
+      "insee": "06",
+      "bbox": {
+        "west": 45.0183,
+        "south": -13.0054,
+        "east": 45.3,
+        "north": -12.6366,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          44.86,
+          -13.16,
+          45.45,
+          -12.48
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers",
+      "iso_3166_1": "YT",
+      "notes": "UN General Assembly resolutions reaffirm the Comoros claim (search only); INSEE and IGN treat it as a French region."
+    },
+    {
+      "code": "FR-IDF",
+      "name": "Île-de-France",
+      "name_en": "Île-de-France",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "region",
+      "insee": "11",
+      "bbox": {
+        "west": 1.4463,
+        "south": 48.1201,
+        "east": 3.559,
+        "north": 49.2415,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          1.29,
+          47.97,
+          3.71,
+          49.4
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers",
+      "notes": "Candidate first region. Area 12,012 km² (search only; 12,070 km² computed from the polygons). Population 12,463,100 on 2023-01-01 (INSEE, opened; 12,463,067 in a table of the same page). Box overlaps FR-NOR, FR-HDF, FR-CVL, FR-GES and FR-BFC."
+    },
+    {
+      "code": "FR-CVL",
+      "name": "Centre-Val de Loire",
+      "name_en": "Centre-Val de Loire",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "region",
+      "insee": "24",
+      "bbox": {
+        "west": 0.0527,
+        "south": 46.3469,
+        "east": 3.1287,
+        "north": 48.941,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          -0.1,
+          46.19,
+          3.28,
+          49.1
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers",
+      "notes": "West edge 0.0527, so the margin box crosses the Greenwich meridian. Box overlaps six neighbours."
+    },
+    {
+      "code": "FR-BFC",
+      "name": "Bourgogne-Franche-Comté",
+      "name_en": "Bourgogne-Franche-Comté",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "region",
+      "insee": "27",
+      "bbox": {
+        "west": 2.8449,
+        "south": 46.1561,
+        "east": 7.1434,
+        "north": 48.4001,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          2.69,
+          46.0,
+          7.3,
+          48.56
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers"
+    },
+    {
+      "code": "FR-NOR",
+      "name": "Normandie",
+      "name_en": "Normandy",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "region",
+      "insee": "28",
+      "bbox": {
+        "west": -1.955,
+        "south": 48.1799,
+        "east": 1.8029,
+        "north": 50.0722,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          -2.11,
+          48.02,
+          1.96,
+          50.23
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers"
+    },
+    {
+      "code": "FR-HDF",
+      "name": "Hauts-de-France",
+      "name_en": "Hauts-de-France",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "region",
+      "insee": "32",
+      "bbox": {
+        "west": 1.3802,
+        "south": 48.8372,
+        "east": 4.2558,
+        "north": 51.0892,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          1.23,
+          48.68,
+          4.41,
+          51.24
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers"
+    },
+    {
+      "code": "FR-GES",
+      "name": "Grand Est",
+      "name_en": "Grand Est",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "region",
+      "insee": "44",
+      "bbox": {
+        "west": 3.3837,
+        "south": 47.4203,
+        "east": 8.2325,
+        "north": 50.1693,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          3.23,
+          47.27,
+          8.39,
+          50.32
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers"
+    },
+    {
+      "code": "FR-PDL",
+      "name": "Pays de la Loire",
+      "name_en": "Pays de la Loire",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "region",
+      "insee": "52",
+      "bbox": {
+        "west": -2.6255,
+        "south": 46.2666,
+        "east": 0.9167,
+        "north": 48.568,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          -2.78,
+          46.11,
+          1.07,
+          48.72
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers"
+    },
+    {
+      "code": "FR-BRE",
+      "name": "Bretagne",
+      "name_en": "Brittany",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "region",
+      "insee": "53",
+      "bbox": {
+        "west": -5.1413,
+        "south": 47.2779,
+        "east": -1.0156,
+        "north": 48.9008,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          -5.3,
+          47.12,
+          -0.86,
+          49.06
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers",
+      "notes": "Ouessant and Molène stretch the west edge by 0.35 degrees."
+    },
+    {
+      "code": "FR-NAQ",
+      "name": "Nouvelle-Aquitaine",
+      "name_en": "Nouvelle-Aquitaine",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "region",
+      "insee": "75",
+      "bbox": {
+        "west": -1.7924,
+        "south": 42.7779,
+        "east": 2.6113,
+        "north": 47.176,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          -1.95,
+          42.62,
+          2.77,
+          47.33
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers"
+    },
+    {
+      "code": "FR-OCC",
+      "name": "Occitanie",
+      "name_en": "Occitanie",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "region",
+      "insee": "76",
+      "bbox": {
+        "west": -0.3272,
+        "south": 42.3329,
+        "east": 4.8456,
+        "north": 45.0467,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          -0.48,
+          42.18,
+          5.0,
+          45.2
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers"
+    },
+    {
+      "code": "FR-ARA",
+      "name": "Auvergne-Rhône-Alpes",
+      "name_en": "Auvergne-Rhône-Alpes",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "region",
+      "insee": "84",
+      "bbox": {
+        "west": 2.0629,
+        "south": 44.1155,
+        "east": 7.1856,
+        "north": 46.8043,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          1.91,
+          43.96,
+          7.34,
+          46.96
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers",
+      "notes": "Mont Blanc summit placed differently on French and Italian maps (search only); effect on the box not checked."
+    },
+    {
+      "code": "FR-PAC",
+      "name": "Provence-Alpes-Côte d'Azur",
+      "name_en": "Provence-Alpes-Côte d'Azur",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "region",
+      "insee": "93",
+      "bbox": {
+        "west": 4.2302,
+        "south": 42.982,
+        "east": 7.719,
+        "north": 45.1268,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          4.08,
+          42.83,
+          7.87,
+          45.28
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers"
+    },
+    {
+      "code": "FR-20R",
+      "name": "Corse",
+      "name_en": "Corsica",
+      "country": "France",
+      "country_iso": "FR",
+      "admin_level": "region with special status (Collectivité de Corse)",
+      "insee": "94",
+      "bbox": {
+        "west": 8.5347,
+        "south": 41.3336,
+        "east": 9.56,
+        "north": 43.0276,
+        "source": {
+          "dataset": "ADMIN EXPRESS COG, edition 2026-01-01, layer ADMINEXPRESS-COG.2026:region, every vertex (coastline-bound land polygons, inferred from areas)",
+          "publisher": "IGN",
+          "licence": "Licence-Ouverte-2.0",
+          "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG.2026:region&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&COUNT=100",
+          "verified": "computed 2026-11-17"
+        },
+        "padded_0_15": [
+          8.38,
+          41.18,
+          9.71,
+          43.18
+        ],
+        "padded_note": "west, south, east, north plus or minus 0.15°, rounded outward to 0.01°, the same margin map_sets.state uses for US states"
+      },
+      "layers": "country_layers",
+      "notes": "ISO code FR-20R since 24 November 2020 (FR-COR before, per ISO's change history, opened). Collectivité de Corse; departments 2A and 2B. Code begins with a digit after the hyphen: behaviour in file names and manifest id not tested."
+    }
+  ]
+}

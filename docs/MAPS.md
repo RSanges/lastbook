@@ -109,6 +109,7 @@ issue before any code.
 [REGIONS-LK.md](REGIONS-LK.md) does the same for Sri Lanka as one island-wide region.
 [REGIONS-TH.md](REGIONS-TH.md) does the same for Thailand's provinces and Bangkok.
 [REGIONS-DE.md](REGIONS-DE.md) does the same for Germany's 16 states.
+[REGIONS-FR.md](REGIONS-FR.md) does the same for France's 18 regions, the five overseas regions included.
 
 ## Checking a map change
 
